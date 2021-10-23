@@ -100,29 +100,36 @@ FALSE	        	f(?i:alse)
 
 
 %%
-<INITIAL,COMMENT>{NEWLINE}		{ curr_lineno++; }
+<INITIAL,COMMENT>{NEWLINE} {
+	curr_lineno++;
+}
 
-<INITIAL,COMMENT>{OPEN_COMMENT}		{ comment_count++; is_commented = true; BEGIN(COMMENT); }
-<INITIAL>{CLOSE_COMMENT} { cool_yylval.error_msg = "Unmatched *)"; return (ERROR); }
-<COMMENT>{CLOSE_COMMENT}		{ 
-			if (comment_count > 0) {
-			 comment_count--;
-			}
-		        if (comment_count == 0) {
-			 BEGIN(INITIAL);
-			 is_commented = false; 
-			}
-			}		 
+<INITIAL,COMMENT>{OPEN_COMMENT} { 
+	comment_count++; is_commented = true; BEGIN(COMMENT); 
+}
+<INITIAL>{CLOSE_COMMENT} { 
+	cool_yylval.error_msg = "Unmatched *)"; return (ERROR); 
+}
+<COMMENT>{CLOSE_COMMENT} { 
+	if (comment_count > 0) {
+		comment_count--;
+	}
+	if (comment_count == 0) {
+		BEGIN(INITIAL);
+		is_commented = false; 
+	}
+}		 
 <COMMENT>. 	{ }
-<COMMENT><<EOF>> 	{ cool_yylval.error_msg = "EOF in comment."; BEGIN(INITIAL); return (ERROR); }
+<COMMENT><<EOF>> { 
+	cool_yylval.error_msg = "EOF in comment."; 
+	BEGIN(INITIAL); 
+	return (ERROR);
+}
+{LINE_COMMENT} { }
+
 
  /*
-  *  Nested comments
-  */
-
-
- /*
-  *  The multiple-character operators.
+  *  The single-character operators.
   */
 
 
