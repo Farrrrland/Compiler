@@ -45,7 +45,6 @@ class CellularAutomaton inherits IO {
    
     (* a cell will live if exactly 1 of itself and it's immediate
        neighbors are alive *)
-    --   live better bro.
     cell_at_next_evolution(position : Int) : String {
         if (if cell(position) = "X" then 1 else 0 fi
             + if cell_left_neighbor(position) = "X" then 1 else 0 fi
@@ -73,17 +72,6 @@ class CellularAutomaton inherits IO {
                 self;
             }
         ) ) )
-    };
-};
-
-class ZeroTest{
-    zeroStr : String;
-    testZeroStr() : String {
-        zeroStr <- "123\0"
-        zeroStr <- ZeroStr.concat("123\\0");
-        zeroStr <- ZeroStr.concat("123\\\0");
-        zeroStr <- ZeroStr.concat("123\\\\0");
-        zeroStr
     };
 };
 

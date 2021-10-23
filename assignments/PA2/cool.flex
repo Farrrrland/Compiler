@@ -183,43 +183,113 @@ FALSE	        	f(?i:alse)
   *
   */
 
-<INITIAL>{QUOTE}	{ BEGIN(str); string_buf[0] = '\0'; string_buf_ptr = string_buf; }
-<str>{QUOTE} { *string_buf_ptr = '\0';  cool_yylval.symbol = new StringEntry(string_buf, string_buf_ptr - string_buf, str_count++); BEGIN(INITIAL); return (STR_CONST); }
-<str>\\\\    { if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) 
-                    { cool_yylval.error_msg = "String constant is too long."; BEGIN(str_e); return (ERROR); } 
-                *string_buf_ptr = '\\'; 
-                string_buf_ptr++; } 
-<str>\\t     { if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1)
-                    { cool_yylval.error_msg = "String constant is too long."; BEGIN(str_e); return (ERROR); } 
-                *string_buf_ptr = '\t';
-                string_buf_ptr++; } 
-<str>\\b     { if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1)
-                    { cool_yylval.error_msg = "String constant is too long."; BEGIN(str_e); return (ERROR); } 
-                *string_buf_ptr = '\b';
-                string_buf_ptr++; } 
-<str>\\f     { if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1)
-                    { cool_yylval.error_msg = "String constant is too long."; BEGIN(str_e); return (ERROR); } 
-                *string_buf_ptr = '\f';
-                string_buf_ptr++; } 
-<str>\\n     { if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1)
-                    { cool_yylval.error_msg = "String constant is too long."; BEGIN(str_e); return (ERROR); }
-                *string_buf_ptr = '\n'; 
-                string_buf_ptr++; } 
-<str>\\[^tfbn]  { if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1)
-                      { cool_yylval.error_msg = "String constant is too long."; BEGIN(str_e); return (ERROR); }
-                  if(yytext[1] == '\0') { cool_yylval.error_msg = "String contains null character."; *string_buf_ptr = '\0'; BEGIN(str_e); return (ERROR); } 
-                  *string_buf_ptr = yytext[1];
-                  string_buf_ptr++; } 
-<str>.       {if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1)
-                  { cool_yylval.error_msg = "String constant is too long."; BEGIN(str_e); return (ERROR); }
-              if(yytext[0] == '\0') { cool_yylval.error_msg = "String contains null character."; *string_buf_ptr = '\0'; BEGIN(str_e); return (ERROR); }
-              *string_buf_ptr = yytext[0]; 
-              string_buf_ptr++; } 
-<str>{NEWLINE}   { curr_lineno++; BEGIN(INITIAL); *string_buf_ptr = '\0'; cool_yylval.error_msg = "Unterminated string constant."; return (ERROR); }
-<str>\\\n    { curr_lineno++; *string_buf_ptr = '\n'; string_buf_ptr++; }
-<str><<EOF>> { cool_yylval.error_msg = "EOF in string constant."; BEGIN(INITIAL); return (ERROR); }
-<str_e>{NEWLINE}  { BEGIN(INITIAL); }
-<str_e>{QUOTE}    { BEGIN(INITIAL); }
+<INITIAL>{QUOTE} { 
+	BEGIN(str); 
+	string_buf[0] = '\0'; 
+	string_buf_ptr = string_buf; 
+}
+
+<str>{QUOTE} {  
+	BEGIN(INITIAL); 
+	if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) { 
+		cool_yylval.error_msg = "String constant is too long.";
+		return (ERROR); 
+	}
+	*string_buf_ptr = '\0';  
+	cool_yylval.symbol = new StringEntry(string_buf, string_buf_ptr - string_buf, str_count++);
+	return (STR_CONST); 
+}
+
+<str>\\\\ {
+	if (string_buf_ptr - string_buf < MAX_STR_CONST) {
+		*string_buf_ptr = '\\';
+		string_buf_ptr++;
+	}
+}
+
+<str>\\t {
+	if (string_buf_ptr - string_buf < MAX_STR_CONST) {
+		*string_buf_ptr = '\t';
+		string_buf_ptr++;
+ 	}
+}
+
+<str>\\b {
+	if (string_buf_ptr - string_buf < MAX_STR_CONST) {
+		*string_buf_ptr = '\b';
+		string_buf_ptr++;
+	}
+}
+
+<str>\\f {
+	if (string_buf_ptr - string_buf < MAX_STR_CONST) {
+		*string_buf_ptr = '\f';
+        string_buf_ptr++;
+	}
+}
+
+<str>\\n {
+	if (string_buf_ptr - string_buf < MAX_STR_CONST) {
+		*string_buf_ptr = '\n'; 
+		string_buf_ptr++;
+	}
+}
+
+<str>\\\n {
+	curr_lineno++;
+	if (string_buf_ptr - string_buf < MAX_STR_CONST) {
+		*string_buf_ptr = '\n'; 
+		string_buf_ptr++; 
+	}
+}
+
+<str>\\[^tfbn]  {
+	if (string_buf_ptr - string_buf < MAX_STR_CONST) {
+		if(yytext[1] == '\0') { 
+			cool_yylval.error_msg = "String contains null character."; 
+			*string_buf_ptr = '\0'; 
+			BEGIN(str_e); 
+			return (ERROR); 
+		} 
+		*string_buf_ptr = yytext[1];
+		string_buf_ptr++;
+	}
+}
+
+<str>. {
+	if (string_buf_ptr - string_buf < MAX_STR_CONST) {
+		if(yytext[0] == '\0') { 
+			cool_yylval.error_msg = "String contains null character."; 
+			*string_buf_ptr = '\0'; 
+			BEGIN(str_e); 
+			return (ERROR); 
+		}
+		*string_buf_ptr = yytext[0];
+		string_buf_ptr++; 
+	}
+} 
+
+<str>{NEWLINE} { 
+	curr_lineno++; 
+	BEGIN(INITIAL); 
+	*string_buf_ptr = '\0'; 
+	cool_yylval.error_msg = "Unterminated string constant."; 
+	return (ERROR); 
+}
+
+<str><<EOF>> {
+	cool_yylval.error_msg = "EOF in string constant."; 
+	BEGIN(INITIAL); 
+	return(ERROR); 
+}
+<str_e>{NEWLINE} { 
+	curr_lineno++;
+}
+
+<str_e>{QUOTE} {
+	BEGIN(INITIAL); 
+}
+
 <str_e>. {}
 
 
