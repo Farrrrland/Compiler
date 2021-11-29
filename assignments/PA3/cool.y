@@ -187,7 +187,10 @@
     
     /* Feature list may be empty, but no empty features in list. */
     feature_list: /* empty */
-    {  $$ = nil_Features(); }
+    { 
+      SET_NODELOC(0);
+      $$ = nil_Features(); 
+    }
     | feature_list feature  /* several features */
 		{	 $$ = append_Features($1, single_Features($2)); }
 		;
@@ -200,7 +203,10 @@
     ;
 
     formal_list :  /* empty */
-    { $$ = nil_Formals(); }
+    { 
+      SET_NODELOC(0);
+      $$ = nil_Formals(); 
+    }
 		| formal 
     { $$ = single_Formals($1); }
 		| formal_list ',' formal  /* several */
@@ -212,7 +218,10 @@
 		;
 
     optional_assign :  /* empty */
-		{ $$ = no_expr(); }
+		{ 
+      SET_NODELOC(0);
+      $$ = no_expr(); 
+    }
 		| ASSIGN expression 
     { $$ = $2; }
 		;
@@ -272,7 +281,10 @@
 		;
     
     expression_list1 :   /* empty */
-    { $$ = nil_Expressions(); }
+    { 
+      SET_NODELOC(0);
+      $$ = nil_Expressions(); 
+    }
 		| expression  /* single expression */
     { $$ = single_Expressions($1); } 
 		| expression_list1 ',' expression  /* several expressions */ 
