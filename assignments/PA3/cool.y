@@ -168,10 +168,10 @@
     ;
     
     class_list
-    : class			/* single class */
+    : class /* single class */
     { $$ = single_Classes($1);
     parse_results = $$; }
-    | class_list class	/* several classes */
+    | class_list class  /* several classes */
     { $$ = append_Classes($1,single_Classes($2)); 
     parse_results = $$; }
     ;
@@ -186,164 +186,124 @@
     ;
     
     /* Feature list may be empty, but no empty features in list. */
-    feature_list:		/* empty */
+    feature_list: /* empty */
     {  $$ = nil_Features(); }
-    | feature_list feature { /* several features */
-					$$ = append_Features($1, single_Features($2));
-				}
-				;
+    | feature_list feature  /* several features */
+		{	 $$ = append_Features($1, single_Features($2)); }
+		;
     
-    feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';' {
-      $$ = method($1, $3, $6, $8);
-    }
-    | OBJECTID ':' TYPEID optional_assign ';' {
-      $$ = attr($1, $3, $4);
-    }
+    feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
+    { $$ = method($1, $3, $6, $8); }
+    | OBJECTID ':' TYPEID optional_assign ';' 
+    { $$ = attr($1, $3, $4); }
     | error ';' {}
     ;
 
-    formal_list : {
-					$$ = nil_Formals();
-				}
-				| formal {
-					$$ = single_Formals($1);
-				}
-				| formal_list ',' formal {
-					$$ = append_Formals($1, single_Formals($3));
-				}
-				;
+    formal_list :  /* empty */
+    { $$ = nil_Formals(); }
+		| formal 
+    { $$ = single_Formals($1); }
+		| formal_list ',' formal  /* several */
+    { $$ = append_Formals($1, single_Formals($3)); }
+		;
     
-    formal		: OBJECTID ':' TYPEID {
-					$$ = formal($1, $3);
-				}
-				;
+    formal : OBJECTID ':' TYPEID 
+    { $$ = formal($1, $3); }
+		;
 
-    optional_assign : { /* empty */
-					$$ = no_expr();
-				}
-				| ASSIGN expression {
-					$$ = $2;
-				}
-				;
+    optional_assign :  /* empty */
+		{ $$ = no_expr(); }
+		| ASSIGN expression 
+    { $$ = $2; }
+		;
 
-    expression	: OBJECTID ASSIGN expression {
-					$$ = assign($1, $3);
-				}
-				| expression '.' OBJECTID '(' expression_list1 ')' {
-					$$ = dispatch($1, $3, $5);
-				}
-				| expression '@' TYPEID '.' OBJECTID '(' expression_list1 ')' {
-					$$ = static_dispatch($1, $3, $5, $7);
-				}
-				| OBJECTID '(' expression_list1 ')' {
-					$$ = dispatch(object(idtable.add_string("self")), $1, $3);
-				}
-				| IF expression THEN expression ELSE expression FI {
-					$$ = cond($2, $4, $6);
-				} 
-				| WHILE expression LOOP expression POOL {
-					$$ = loop($2, $4);
-				}
-				| '{' expression_list2 '}' {
-					$$ = block($2);
-				}
-				| LET let {
-					$$ = $2;
-				}
-				| CASE expression OF case_list ESAC {
-					$$ = typcase($2, $4);
-				}
-				| NEW TYPEID {
-					$$ = new_($2);
-				}
-				| ISVOID expression {
-					$$ = isvoid($2);
-				}
-				| expression '+' expression {
-					$$ = plus($1, $3);
-				}
-				| expression '-' expression {
-					$$ = sub($1, $3);
-				}
-				| expression '*' expression {
-					$$ = mul($1, $3);
-				}
-				| expression '/' expression {
-					$$ = divide($1, $3);
-				}
-				| '~' expression {
-					$$ = neg($2);
-				}
-				| expression '<' expression {
-					$$ = lt($1, $3);
-				}
-				| expression LE expression {
-					$$ = leq($1, $3);
-				}
-				| expression '=' expression {
-					$$ = eq($1, $3);
-				}
-				| NOT expression {
-					$$ = comp($2);
-				}
-				| '(' expression ')' {
-					$$ = $2;
-				}
-				| OBJECTID {
-					$$ = object($1);
-				}
-				| INT_CONST {
-					$$ = int_const($1);
-				}
-				| STR_CONST {
-					$$ = string_const($1);
-				}
-				| BOOL_CONST {
-					$$ = bool_const($1);
-				}
-				;
+    expression : OBJECTID ASSIGN expression  /* assignments */
+    { $$ = assign($1, $3); }
+		| expression '.' OBJECTID '(' expression_list1 ')'  /* dispatch form 1 */
+    { $$ = dispatch($1, $3, $5); }
+		| expression '@' TYPEID '.' OBJECTID '(' expression_list1 ')'  /* dispatch form 2 */
+    { $$ = static_dispatch($1, $3, $5, $7); }
+		| OBJECTID '(' expression_list1 ')'  /* dispatch form 3 */
+    { $$ = dispatch(object(idtable.add_string("self")), $1, $3); }
+		| IF expression THEN expression ELSE expression FI  /* conditions */
+    { $$ = cond($2, $4, $6); } 
+		| WHILE expression LOOP expression POOL  /* loops */
+    { $$ = loop($2, $4); }
+		| '{' expression_list2 '}'  /* blocks */
+    { $$ = block($2); }
+		| LET let  /* Let */
+    { $$ = $2; }
+		| CASE expression OF case_list ESAC  /* case */
+    { $$ = typcase($2, $4); }
+		| NEW TYPEID  /* New */
+    { $$ = new_($2); }
+		| ISVOID expression  /* IsVoid */
+    { $$ = isvoid($2); }
+    /* Arithmetic and Comparison Operations */
+		| expression '+' expression 
+    {	$$ = plus($1, $3); }
+		| expression '-' expression 
+    { $$ = sub($1, $3); }
+		| expression '*' expression 
+    { $$ = mul($1, $3); }
+		| expression '/' expression 
+    { $$ = divide($1, $3); }
+		| '~' expression 
+    { $$ = neg($2); }
+		| expression '<' expression 
+    { $$ = lt($1, $3); }
+		| expression LE expression  /* <= */
+    { $$ = leq($1, $3); }
+		| expression '=' expression 
+    { $$ = eq($1, $3); }
+		| NOT expression 
+    { $$ = comp($2); }
+		| '(' expression ')' 
+    { $$ = $2; }
+    /* End Of Arithmetic and Comparison Operations */
+		| OBJECTID  /* identifer, What about self? which is quite special I guess */
+    { $$ = object($1); }
+		| INT_CONST  /* constants */
+    { $$ = int_const($1); }
+		| STR_CONST 
+    { $$ = string_const($1); }
+		| BOOL_CONST 
+    { $$ = bool_const($1); }
+		;
     
-    expression_list1 : { /* empty */
-					$$ = nil_Expressions();
-				}
-				| expression { /* single expression */
-					$$ = single_Expressions($1);
-				} 
-				| expression_list1 ',' expression { /* several expressions */
-					$$ = append_Expressions($1, single_Expressions($3));
-				}
-				;
+    expression_list1 :   /* empty */
+    { $$ = nil_Expressions(); }
+		| expression  /* single expression */
+    { $$ = single_Expressions($1); } 
+		| expression_list1 ',' expression  /* several expressions */ 
+    { $$ = append_Expressions($1, single_Expressions($3)); }
+		;
 
-	expression_list2 : expression ';' { /* single expression */
-					$$ = single_Expressions($1);
-				} 
-				| expression_list2 expression ';' { /* several expressions */
-					$$ = append_Expressions($1, single_Expressions($2));
-				}
-				| error ';' { yyerrok; }
-				;
+    expression_list2 : expression ';'  /* single expression */
+    { $$ = single_Expressions($1); } 
+    | expression_list2 expression ';'  /* several expressions */
+    { $$ = append_Expressions($1, single_Expressions($2)); }
+    | error ';' { yyerrok; }
+    ;
 
-  let			: OBJECTID ':' TYPEID optional_assign IN expression %prec FLAG {
-					$$ = let($1, $3, $4, $6);
-				}
-				| OBJECTID ':' TYPEID optional_assign ',' let {
-					$$ = let($1, $3, $4, $6);
-				}
-				| error IN expression %prec FLAG { yyerrok; }
-				| error ',' let { yyerrok; }
-				;
+    let : OBJECTID ':' TYPEID optional_assign IN expression %prec FLAG  /* let in expr */
+    { $$ = let($1, $3, $4, $6); }
+    | OBJECTID ':' TYPEID optional_assign ',' let  /* let */
+    { $$ = let($1, $3, $4, $6); }
+    | error IN expression %prec FLAG 
+    { yyerrok; }
+    | error ',' let
+    { yyerrok; }
+    ;
 
-	case_list	: case {
-					$$ = single_Cases($1);
-				} 
-				| case_list case {
-					$$ = append_Cases($1, single_Cases($2));
-				}
-				;
+    case_list	: case 
+    { $$ = single_Cases($1); } 
+    | case_list case 
+    { $$ = append_Cases($1, single_Cases($2)); }
+    ;
 
-	case		: OBJECTID ':' TYPEID DARROW expression ';' {
-					$$ = branch($1, $3, $5);
-				}
+    case : OBJECTID ':' TYPEID DARROW expression ';'
+    { $$ = branch($1, $3, $5); }
 
     /* end of grammar */
     %%

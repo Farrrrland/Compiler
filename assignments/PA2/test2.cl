@@ -1,7 +1,7 @@
 (* 
  * Test by Farland, 2021.10.23
  * Based on Handout 
- * Chapter 4.1
+ * Chapter 4.3
  *)
 
 class Test02 {
